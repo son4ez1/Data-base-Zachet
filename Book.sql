@@ -80,3 +80,63 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2022-10-28 11:37:30
+
+Задание
+Вывести из таблицы trip информацию о командировках тех сотрудников, фамилия которых заканчивается на букву «а», в отсортированном по убыванию даты последнего дня командировки виде. В результат включить столбцы name, city, per_diem, date_first, date_last.
+use book;
+SELECT name, citi, per_diem, date_first, date_last FROM trip WHERE name like '%а %' ORDER BY date_last desc;
+select * from trip;
+
+Задание
+Вывести в алфавитном порядке фамилии и инициалы тех сотрудников, которые были в командировке в Москве.
+use book;
+SELECT DISTINCT name FROM trip WHERE citi = 'Москва' ORDER BY name;
+select * from trip;
+
+Задание
+Для каждого города посчитать, сколько раз сотрудники в нем были.  Информацию вывести в отсортированном в алфавитном порядке по названию городов. Вычисляемый столбец назвать Количество. 
+use book;
+SELECT citi, count(citi) AS 'Количество'  FROM trip  GROUP BY citi ORDER BY citi;
+select * from trip;
+
+Задание
+Вывести два города, в которых чаще всего были в командировках сотрудники. Вычисляемый столбец назвать Количество.
+use book;
+SELECT citi, count(name) as 'Количество' FROM trip GROUP BY 1 ORDER BY 2 DESC LIMIT 2;
+select * from trip;
+
+Задание
+Вывести информацию о командировках во все города кроме Москвы и Санкт-Петербурга (фамилии и инициалы сотрудников, город ,  длительность командировки в днях, при этом первый и последний день относится к периоду командировки). Последний столбец назвать Длительность. Информацию вывести в упорядоченном по убыванию длительности поездки, а потом по убыванию названий городов (в обратном алфавитном порядке).
+use book;
+SELECT name, citi, (DATEDIFF(date_last, date_first)+1) AS Длительность FROM trip WHERE citi NOT IN ('Москва', 'Санкт-Петербург') ORDER BY Длительность DESC,  citi DESC;
+select * from trip;
+
+Задание
+Вывести информацию о командировках сотрудника(ов), которые были самыми короткими по времени. В результат включить столбцы name, city, date_first, date_last.
+use book;
+SELECT name, citi, date_first, date_last FROM trip WHERE ABS(DATEDIFF(date_first, date_last) - 1) = (SELECT MIN(ABS(DATEDIFF(date_first, date_last) - 1))FROM trip);
+select * from trip;
+
+Задание
+Вывести информацию о командировках, начало и конец которых относятся к одному месяцу (год может быть любой). В результат включить столбцы name, city, date_first, date_last. Строки отсортировать сначала  в алфавитном порядке по названию города, а затем по фамилии сотрудника .
+use book;
+SELECT name, citi, date_first, date_last FROM trip WHERE MONTH(date_first) = MONTH(date_last) ORDER BY citi, name;
+select * from trip;
+
+Задание
+Вывести название месяца и количество командировок для каждого месяца. Считаем, что командировка относится к некоторому месяцу, если она началась в этом месяце. Информацию вывести сначала в отсортированном по убыванию количества, а потом в алфавитном порядке по названию месяца виде. Название столбцов – Месяц и Количество.
+use book;
+SELECT MONTHNAME(date_first) AS Месяц, COUNT(MONTHNAME(date_first)) AS Количество FROM trip GROUP BY MONTHNAME(date_first) ORDER BY Количество DESC, Месяц;
+select * from trip;
+
+Задание
+Вывести сумму суточных (произведение количества дней командировки и размера суточных) для командировок, первый день которых пришелся на февраль или март 2020 года. Значение суточных для каждой командировки занесено в столбец per_diem. Вывести фамилию и инициалы сотрудника, город, первый день командировки и сумму суточных. Последний столбец назвать Сумма. Информацию отсортировать сначала  в алфавитном порядке по фамилиям сотрудников, а затем по убыванию суммы суточных.
+use book;
+SELECT name, citi, date_first, DATEDIFF(date_last+1, date_first)*per_diem AS Сумма FROM trip WHERE YEAR(date_first)=2020 AND MONTH(date_first)=3 OR MONTH(date_first)=2 ORDER BY name, Сумма DESC;
+select * from trip;
+
+Задание
+Вывести фамилию с инициалами и общую сумму суточных, полученных за все командировки для тех сотрудников, которые были в командировках больше чем 3 раза, в отсортированном по убыванию сумм суточных виде. Последний столбец назвать Сумма.
+use book;
+SELECT name, SUM((DATEDIFF(date_last, date_first) + 1) * per_diem) AS Сумма FROM trip GROUP BY name HAVING COUNT(date_first) > 3 ORDER BY name;
+select * from trip;
