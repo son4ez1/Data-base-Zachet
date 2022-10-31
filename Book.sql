@@ -81,62 +81,632 @@ UNLOCK TABLES;
 
 -- Dump completed on 2022-10-28 11:37:30
 
+
+-- 1.6.2
 Задание
 Вывести из таблицы trip информацию о командировках тех сотрудников, фамилия которых заканчивается на букву «а», в отсортированном по убыванию даты последнего дня командировки виде. В результат включить столбцы name, city, per_diem, date_first, date_last.
-use book;
-SELECT name, citi, per_diem, date_first, date_last FROM trip WHERE name like '%а %' ORDER BY date_last desc;
-select * from trip;
+SELECT name, city, per_diem, date_first, date_last  FROM trip 
+WHERE name LIKE '%а %' ORDER BY date_last DESC;
 
+-- 1.6.3
 Задание
 Вывести в алфавитном порядке фамилии и инициалы тех сотрудников, которые были в командировке в Москве.
-use book;
-SELECT DISTINCT name FROM trip WHERE citi = 'Москва' ORDER BY name;
-select * from trip;
+SELECT name FROM trip 
+WHERE city = "Москва" GROUP BY name ORDER BY name ASC;
 
+
+-- 1.6.4
 Задание
 Для каждого города посчитать, сколько раз сотрудники в нем были.  Информацию вывести в отсортированном в алфавитном порядке по названию городов. Вычисляемый столбец назвать Количество. 
-use book;
-SELECT citi, count(citi) AS 'Количество'  FROM trip  GROUP BY citi ORDER BY citi;
-select * from trip;
+SELECT city, (SELECT  COUNT(city)) AS Количество
+FROM trip
+GROUP BY city ORDER BY city;
 
+
+-- 1.6.5
 Задание
 Вывести два города, в которых чаще всего были в командировках сотрудники. Вычисляемый столбец назвать Количество.
-use book;
-SELECT citi, count(name) as 'Количество' FROM trip GROUP BY 1 ORDER BY 2 DESC LIMIT 2;
-select * from trip;
+SELECT city, (SELECT  COUNT(city)) AS Количество
+FROM trip
+GROUP BY city ORDER BY Количество DESC LIMIT 2;
 
+
+-- 1.6.6
 Задание
 Вывести информацию о командировках во все города кроме Москвы и Санкт-Петербурга (фамилии и инициалы сотрудников, город ,  длительность командировки в днях, при этом первый и последний день относится к периоду командировки). Последний столбец назвать Длительность. Информацию вывести в упорядоченном по убыванию длительности поездки, а потом по убыванию названий городов (в обратном алфавитном порядке).
-use book;
-SELECT name, citi, (DATEDIFF(date_last, date_first)+1) AS Длительность FROM trip WHERE citi NOT IN ('Москва', 'Санкт-Петербург') ORDER BY Длительность DESC,  citi DESC;
-select * from trip;
+SELECT name,city, (SELECT  DATEDIFF(date_last, date_first ) + 1) AS Длительность
+FROM trip WHERE city <> "Москва" AND city <> "Санкт-Петербург" ORDER BY Длительность DESC ;
 
+-- 1.6.7
 Задание
 Вывести информацию о командировках сотрудника(ов), которые были самыми короткими по времени. В результат включить столбцы name, city, date_first, date_last.
-use book;
-SELECT name, citi, date_first, date_last FROM trip WHERE ABS(DATEDIFF(date_first, date_last) - 1) = (SELECT MIN(ABS(DATEDIFF(date_first, date_last) - 1))FROM trip);
-select * from trip;
+SELECT name, city, date_first, date_last 
+FROM trip 
+where DATEDIFF(date_last, date_first) IN (
+    SELECT MIN(DATEDIFF(date_last, date_first))
+    FROM trip);          
 
+-- 1.6.8
 Задание
 Вывести информацию о командировках, начало и конец которых относятся к одному месяцу (год может быть любой). В результат включить столбцы name, city, date_first, date_last. Строки отсортировать сначала  в алфавитном порядке по названию города, а затем по фамилии сотрудника .
-use book;
-SELECT name, citi, date_first, date_last FROM trip WHERE MONTH(date_first) = MONTH(date_last) ORDER BY citi, name;
-select * from trip;
+SELECT name, city, date_first, date_last 
+FROM trip 
+where MONTH(date_last) = MONTH(date_first) ORDER BY city, name;
 
+-- 1.6.9
 Задание
 Вывести название месяца и количество командировок для каждого месяца. Считаем, что командировка относится к некоторому месяцу, если она началась в этом месяце. Информацию вывести сначала в отсортированном по убыванию количества, а потом в алфавитном порядке по названию месяца виде. Название столбцов – Месяц и Количество.
-use book;
-SELECT MONTHNAME(date_first) AS Месяц, COUNT(MONTHNAME(date_first)) AS Количество FROM trip GROUP BY MONTHNAME(date_first) ORDER BY Количество DESC, Месяц;
-select * from trip;
+SELECT  MONTHNAME(date_first) AS Месяц, Count(MONTHNAME(date_first)) AS Количество
+FROM trip 
+GROUP BY Месяц ORDER BY Количество DESC, Месяц;
 
+-- 1.6.10
 Задание
 Вывести сумму суточных (произведение количества дней командировки и размера суточных) для командировок, первый день которых пришелся на февраль или март 2020 года. Значение суточных для каждой командировки занесено в столбец per_diem. Вывести фамилию и инициалы сотрудника, город, первый день командировки и сумму суточных. Последний столбец назвать Сумма. Информацию отсортировать сначала  в алфавитном порядке по фамилиям сотрудников, а затем по убыванию суммы суточных.
-use book;
-SELECT name, citi, date_first, DATEDIFF(date_last+1, date_first)*per_diem AS Сумма FROM trip WHERE YEAR(date_first)=2020 AND MONTH(date_first)=3 OR MONTH(date_first)=2 ORDER BY name, Сумма DESC;
-select * from trip;
+SELECT name, city, date_first, (DATEDIFF(date_last, date_first) +1) * per_diem  AS  Сумма FROM trip WHERE MONTH(date_first) = 2 OR MONTH(date_first) = 3 ORDER BY name, Сумма DESC;
 
+
+-- 1.6.11
 Задание
 Вывести фамилию с инициалами и общую сумму суточных, полученных за все командировки для тех сотрудников, которые были в командировках больше чем 3 раза, в отсортированном по убыванию сумм суточных виде. Последний столбец назвать Сумма.
-use book;
-SELECT name, SUM((DATEDIFF(date_last, date_first) + 1) * per_diem) AS Сумма FROM trip GROUP BY name HAVING COUNT(date_first) > 3 ORDER BY name;
-select * from trip;
+
+Только для этого задания изменена строка таблицы trip:
+
+4	Ильиных Г.Р.	Владивосток	450	2020-01-12	2020-03-02
+
+SELECT name, SUM((DATEDIFF(date_last, date_first) + 1) * per_diem) AS Сумма
+FROM trip 
+WHERE name IN (
+    SELECT name
+    FROM trip
+    GROUP BY name 
+    HAVING COUNT(name) > 3)
+GROUP BY name 
+ORDER BY Сумма DESC;
+
+--  1.7.2
+Задание
+Создать таблицу fine следующей структуры:
+
+CREATE TABLE fine(
+    fine_id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(30),
+    number_plate VARCHAR(6),
+    violation VARCHAR(50),
+    sum_fine DECIMAL(8,2),
+    date_violation DATETIME,
+    date_payment DATETIME);
+
+-- 1.7.3
+Задание
+В таблицу fine первые 5 строк уже занесены. Добавить в таблицу записи с ключевыми значениями 6, 7, 8.
+INSERT INTO fine(name, number_plate, violation, sum_fine, date_violation, date_payment)
+values('Баранов П.Е.', 'Р523ВТ', 'Превышение скорости(от 40 до 60)', null, '2020-02-14', null),
+('Абрамова К.А.', 'О111АВ', 'Проезд на запрещающий сигнал', null, '2020-02-23', null),
+('Яковлев Г.Р.', 'Т330ТТ', 'Проезд на запрещающий сигнал', null, '2020-03-03', null);
+
+-- 1.7.4
+Задание
+Занести в таблицу fine суммы штрафов, которые должен оплатить водитель, в соответствии с данными из таблицы traffic_violation. При этом суммы заносить только в пустые поля столбца  sum_fine.
+UPDATE fine
+SET sum_fine=(SELECT sum_fine FROM traffic_violation WHERE traffic_violation.violation=fine.violation)
+WHERE sum_fine is NULL
+
+-- 1.7.5
+Задание
+Вывести фамилию, номер машины и нарушение только для тех водителей, которые на одной машине нарушили одно и то же правило   два и более раз. При этом учитывать все нарушения, независимо от того оплачены они или нет. Информацию отсортировать в алфавитном порядке, сначала по фамилии водителя, потом по номеру машины и, наконец, по нарушению.
+/*SELECT name, number_plate, violation
+from fine
+group by name, number_plate, violation
+having count(*) > 1;*/;
+
+-- 1.7.6
+Задание
+В таблице fine увеличить в два раза сумму неоплаченных штрафов для отобранных на предыдущем шаге записей. 
+create table  NewTable AS (
+    select name, number_plate, violation from fine 
+GROUP BY name, number_plate, violation 
+HAVING count(violation)>1
+ORDER BY name, number_plate, violation); 
+UPDATE fine, NewTable 
+SET sum_fine=sum_fine*2 
+WHERE 
+fine.name=NewTable.name AND fine.number_plate=NewTable.number_plate AND  fine.violation=NewTable.violation
+AND fine.date_payment IS NULL; 
+select * from fine;
+
+-- 1.7.7
+Задание
+Водители оплачивают свои штрафы. В таблице payment занесены даты их оплаты:
+Необходимо:
+
+в таблицу fine занести дату оплаты соответствующего штрафа из таблицы payment; 
+уменьшить начисленный штраф в таблице fine в два раза  (только для тех штрафов, информация о которых занесена в таблицу payment) , если оплата произведена не позднее 20 дней со дня нарушения.
+UPDATE fine f, payment p
+SET f.date_payment = p.date_payment,
+    f.sum_fine = IF(DATEDIFF(f.date_payment, f.date_violation) <= 20, f.sum_fine / 2, f.sum_fine)
+WHERE f.name = p.name AND
+      f.number_plate = p.number_plate AND
+      f.violation = p.violation AND
+      f.date_violation = p.date_violation AND
+      f.date_payment IS NULL;
+
+SELECT name, violation, sum_fine, date_violation, date_payment
+FROM fine;
+
+-- 1.7.8
+Задание
+Создать новую таблицу back_payment, куда внести информацию о неоплаченных штрафах (Фамилию и инициалы водителя, номер машины, нарушение, сумму штрафа  и  дату нарушения) из таблицы fine.
+CREATE TABLE back_payment
+    (SELECT name, number_plate, violation, sum_fine, date_violation
+     FROM fine
+     WHERE date_payment IS NULL);
+     
+SELECT * FROM back_payment;
+
+-- 1.7.9
+Задание
+Удалить из таблицы fine информацию о нарушениях, совершенных раньше 1 февраля 2020 года. 
+DELETE FROM fine
+WHERE date_violation <'2020-02-01';
+SELECT * FROM fine;
+
+-- 1.8.2
+SELECT 
+   CONCAT(module_id,'.',lesson_position,".",step_position," ", CONCAT(LEFT(step_name, 30), '...')) AS Шаг, 
+   link AS Ссылка_на_шаг
+FROM step
+        INNER JOIN lesson USING(lesson_id)
+        INNER JOIN module USING(module_id)
+        INNER JOIN step_keyword USING(step_id)
+        INNER JOIN keyword USING(keyword_id)
+WHERE keyword_name LIKE '%ANY%'
+GROUP BY ШАГ, Ссылка_на_шаг
+ORDER BY 1;
+
+-- 2.1.6
+Создать таблицу author следующей структуры:
+
+Поле	Тип, описание
+author_id	INT PRIMARY KEY AUTO_INCREMENT
+name_author	VARCHAR(50)
+
+CREATE TABLE author (
+        author_id	INT PRIMARY KEY AUTO_INCREMENT,
+        name_author	VARCHAR(50));
+
+-- 2.1.7
+Задание
+Заполнить таблицу author. В нее включить следующих авторов:
+
+Булгаков М.А.
+Достоевский Ф.М.
+Есенин С.А.
+Пастернак Б.Л.
+insert into author (name_author) 
+values ('Булгаков М.А.'), ('Достоевский Ф.М.'), ('Есенин С.А.'), ('Пастернак Б.Л.');
+
+-- 2.1.8
+Задание
+Перепишите запрос на создание таблицы book , чтобы ее структура соответствовала структуре, показанной на логической схеме (таблица genre уже создана, порядок следования столбцов - как на логической схеме в таблице book, genre_id  - внешний ключ) . Для genre_id ограничение о недопустимости пустых значений не задавать. В качестве главной таблицы для описания поля  genre_idиспользовать таблицу genre следующей структуры:
+
+Поле	Тип, описание
+genre_id	INT PRIMARY KEY AUTO_INCREMENT
+name_genre	VARCHAR(30)
+CREATE TABLE book (
+    book_id INT PRIMARY KEY AUTO_INCREMENT, 
+    title VARCHAR(50), 
+    author_id INT NOT NULL,
+    genre_id INT,
+    price DECIMAL(8,2), 
+    amount INT, 
+    FOREIGN KEY (author_id)  REFERENCES author (author_id),
+    FOREIGN KEY (genre_id)  REFERENCES genre (genre_id));
+
+-- 2.1.9
+Задание
+Создать таблицу book той же структуры, что и на предыдущем шаге. Будем считать, что при удалении автора из таблицы author, должны удаляться все записи о книгах из таблицы book, написанные этим автором. А при удалении жанра из таблицы genre для соответствующей записи book установить значение Null в столбце genre_id. 
+CREATE TABLE book (
+    book_id INT PRIMARY KEY AUTO_INCREMENT, 
+    title VARCHAR(50), 
+    author_id INT NOT NULL,
+    genre_id INT,
+    price DECIMAL(8,2), 
+    amount INT, 
+    FOREIGN KEY (author_id)  REFERENCES author (author_id) ON DELETE CASCADE,
+    FOREIGN KEY (genre_id)  REFERENCES genre (genre_id) ON DELETE SET NULL);
+
+-- 2.1.11
+Задание
+Добавьте три последние записи (с ключевыми значениями 6, 7, 8) в таблицу book, первые 5 записей уже добавлены:
+
+book_id	title	author_id	genre_id	price	amount
+1	Мастер и Маргарита	1	1	670.99	3
+2	Белая гвардия	1	1	540.50	5
+3	Идиот	2	1	460.00	10
+4	Братья Карамазовы	2	1	799.01	3
+5	Игрок	2	1	480.50	10
+6	Стихотворения и поэмы	3	2	650.00	15
+7	Черный человек	3	2	570.20	6
+8	Лирика	4	2	518.99	2
+
+INSERT INTO book (title, author_id, genre_id, price, amount)
+VALUES ('Стихотворения и поэмы',3,2,650.00,15),
+ ('Черный человек',3,2,570.20,6),
+('Лирика',4,2,518.99,2);
+
+-- 2.2.2
+Задание
+Вывести название, жанр и цену тех книг, количество которых больше 8, в отсортированном по убыванию цены виде.
+SELECT title, name_genre, price
+FROM
+genre INNER JOIN book
+ON genre.genre_id = book.genre_id
+WHERE amount >8 ORDER BY price DESC ;
+
+-- 2.2.3
+Задание
+Вывести все жанры, которые не представлены в книгах на складе.
+SELECT name_genre
+FROM genre LEFT JOIN book
+ON genre.genre_id = book.genre_id
+WHERE book.genre_id IS NULL;
+
+-- 2.2.4
+Задание
+Есть список городов, хранящийся в таблице city:
+
+city_id	name_city
+1	Москва
+2	Санкт-Петербург
+3	Владивосток
+Необходимо в каждом городе провести выставку книг каждого автора в течение 2020 года. Дату проведения выставки выбрать случайным образом. Создать запрос, который выведет город, автора и дату проведения выставки. Последний столбец назвать Дата. Информацию вывести, отсортировав сначала в алфавитном порядке по названиям городов, а потом по убыванию дат проведения выставок.
+SELECT name_city, name_author, (DATE_ADD('2020-01-01', INTERVAL FLOOR(RAND() * 365) DAY)) as Дата
+FROM 
+    city, author    
+    ORDER by name_city, Дата desc;
+    
+-- 2.2.5
+Задание
+ Вывести информацию о книгах (жанр, книга, автор), относящихся к жанру, включающему слово «роман» в отсортированном по названиям книг виде.
+SELECT name_genre, title, name_author
+FROM
+    book
+    INNER JOIN  author ON author.author_id = book.author_id
+    INNER JOIN genre ON genre.genre_id = book.genre_id
+WHERE name_genre LIKE 'Роман' ORDER BY title;
+
+-- 2.2.6
+Задание
+Посчитать количество экземпляров  книг каждого автора из таблицы author.  Вывести тех авторов,  количество книг которых меньше 10, в отсортированном по возрастанию количества виде. Последний столбец назвать Количество.
+SELECT name_author, SUM(amount) AS Количество
+FROM 
+    author LEFT JOIN book
+    on author.author_id = book.author_id
+GROUP BY name_author
+HAVING SUM(amount) < 10 OR SUM(amount) IS NULL
+ORDER BY Количество;
+
+-- 2.2.7
+Задание
+Вывести в алфавитном порядке всех авторов, которые пишут только в одном жанре. Поскольку у нас в таблицах так занесены данные, что у каждого автора книги только в одном жанре,  для этого запроса внесем изменения в таблицу book. Пусть у нас  книга Есенина «Черный человек» относится к жанру «Роман», а книга Булгакова «Белая гвардия» к «Приключениям» (эти изменения в таблицы уже внесены).
+SELECT name_author
+FROM 
+    author INNER JOIN book
+    on author.author_id = book.author_id
+GROUP BY name_author
+        HAVING COUNT(distinct(genre_id)) = 1;
+        
+-- 2.2.8
+Задание
+Вывести информацию о книгах (название книги, фамилию и инициалы автора, название жанра, цену и количество экземпляров книги), написанных в самых популярных жанрах, в отсортированном в алфавитном порядке по названию книг виде. Самым популярным считать жанр, общее количество экземпляров книг которого на складе максимально.
+SELECT   title, name_author, name_genre, price, amount
+FROM 
+    book 
+    INNER JOIN genre ON book.genre_id = genre.genre_id
+    INNER JOIN author ON  book.author_id = author.author_id
+WHERE genre.genre_id IN
+         (SELECT query_in_1.genre_id
+          FROM 
+              (SELECT genre_id, SUM(amount) AS sum_amount
+                FROM book
+                GROUP BY genre_id
+               )query_in_1
+          INNER JOIN 
+              ( SELECT genre_id, SUM(amount) AS sum_amount
+                FROM book
+                GROUP BY genre_id
+                ORDER BY sum_amount DESC
+                LIMIT 1
+               ) query_in_2
+          ON query_in_1.sum_amount= query_in_2.sum_amount
+         ) ORDER BY title;   
+         
+-- 2.2.9
+Задание
+Если в таблицах supply  и book есть одинаковые книги, которые имеют равную цену,  вывести их название и автора, а также посчитать общее количество экземпляров книг в таблицах supply и book,  столбцы назвать Название, Автор  и Количество.
+SELECT title AS Название, name_author AS Автор, SUM(book.amount + supply.amount) AS Количество
+FROM supply
+INNER JOIN book USING(price,title)
+INNER JOIN author ON author.name_author = supply.author
+GROUP BY author.name_author, book.title;
+
+-- 2.3.2
+Задание
+Для книг, которые уже есть на складе (в таблице book), но по другой цене, чем в поставке (supply),  необходимо в таблице book увеличить количество на значение, указанное в поставке,  и пересчитать цену. А в таблице  supply обнулить количество этих книг. Формула для пересчета цены:
+
+UPDATE book
+INNER JOIN author ON author.author_id = book.author_id
+INNER JOIN supply ON book.title = supply.title
+and supply.author = author.name_author
+SET book.price = (book.price * book.amount + supply.price * supply.amount)/(book.amount + supply.amount) , book.amount = book.amount + supply.amount, supply.amount = 0
+WHERE book.price <> supply.price;
+
+SELECT * FROM book;
+
+SELECT * FROM supply;
+
+-- 2.3.3
+Задание
+Включить новых авторов в таблицу author с помощью запроса на добавление, а затем вывести все данные из таблицы author.  Новыми считаются авторы, которые есть в таблице supply, но нет в таблице author.
+INsert into author (name_author)
+SELECT supply.author
+FROM  author
+RIGHT JOIN supply on author.name_author = supply.author
+WHERE name_author IS Null;
+
+select * from author;
+
+-- 2.3.4
+Задание
+Добавить новые книги из таблицы supply в таблицу book на основе сформированного выше запроса. Затем вывести для просмотра таблицу book.
+INSERT INTO book(title, author_id, price, amount)
+SELECT title, author_id, price, amount
+FROM
+author
+INNER JOIN supply ON author.name_author = supply.author
+WHERE amount <> 0;
+
+SELECT * FROM book;
+
+-- 2.3.5
+Задание
+ Занести для книги «Стихотворения и поэмы» Лермонтова жанр «Поэзия», а для книги «Остров сокровищ» Стивенсона - «Приключения». (Использовать два запроса).
+UPDATE book
+SET genre_id = 
+      (
+       SELECT genre_id 
+       FROM genre 
+       WHERE name_genre = 'Поэзия'
+      )
+WHERE book_id = 10;
+
+SELECT * FROM book;
+
+UPDATE book
+SET genre_id = 
+      (
+       SELECT genre_id 
+       FROM genre 
+       WHERE name_genre = 'Приключения'
+      )
+WHERE book_id = 11;
+
+SELECT * FROM book;
+
+-- 2.3.6
+Задание
+Удалить всех авторов и все их книги, общее количество книг которых меньше 20.
+DELETE FROM author
+WHERE author_id IN(
+SELECT author_id
+FROM book
+GROUP BY author_id
+HAVING SUM(amount) < 20
+);
+SELECT * FROM book;
+
+-- 2.3.7
+Задание
+Удалить все жанры, к которым относится меньше 4-х книг. В таблице book для этих жанров установить значение Null.
+DELETE FROM genre
+WHERE genre_id IN(
+SELECT genre_id
+FROM book
+GROUP BY genre_id
+HAVING COUNT(book_id) < 4
+);
+SELECT * FROM book;
+
+SELECT * FROM genre;
+
+-- 2.3.8
+Задание
+Удалить всех авторов, которые пишут в жанре "Поэзия". Из таблицы book удалить все книги этих авторов. В запросе для отбора авторов использовать полное название жанра, а не его id.
+DELETE FROM author 
+USING 
+    author
+     INNER JOIN book ON author.author_id = book.author_id
+     INNER JOIN genre ON genre.genre_id = book.genre_id
+WHERE name_genre LIKE "Поэзия";
+
+SELECT * FROM author;
+
+SELECT * FROM book;
+
+-- 2.3.9
+Задание
+Придумайте один или несколько запросов корректировки данных для таблиц book,  author, genre и supply . Проверьте, правильно ли они работают.
+DELETE FROM author
+WHERE author_id IN (SELECT author_id
+                    FROM book
+                    WHERE genre_id = (SELECT genre_id
+                                     FROM book
+                                     GROUP BY genre_id
+                                     HAVING SUM(amount)
+                                     ORDER BY SUM(amount) DESC
+                                     LIMIT 1) 
+                    GROUP BY author_id);
+
+-- 2.4.5
+Задание
+Вывести все заказы Баранова Павла (id заказа, какие книги, по какой цене и в каком количестве он заказал) в отсортированном по номеру заказа и названиям книг виде.
+SELECT buy.buy_id,title,  price, buy_book.amount
+FROM client INNER JOIN buy USING(client_id)
+    INNER JOIN buy_book USING(buy_id)
+    INNER JOIN book USING(book_id)
+WHERE name_client = 'Баранов Павел'
+ORDER BY buy_id, book.title;
+
+-- 2.4.6
+Задание
+Посчитать, сколько раз была заказана каждая книга, для книги вывести ее автора (нужно посчитать, в каком количестве заказов фигурирует каждая книга).  Вывести фамилию и инициалы автора, название книги, последний столбец назвать Количество. Результат отсортировать сначала  по фамилиям авторов, а потом по названиям книг.
+SELECT name_author, title, COUNT(buy_book.amount) AS Количество 
+FROM author 
+INNER JOIN book USING(author_id) 
+LEFT JOIN buy_book USING(book_id) 
+GROUP BY book.title, name_author 
+ORDER BY name_author, title;
+
+-- 2.4.7
+Задание 
+Вывести города, в которых живут клиенты, оформлявшие заказы в интернет-магазине. Указать количество заказов в каждый город, этот столбец назвать Количество. Информацию вывести по убыванию количества заказов, а затем в алфавитном порядке по названию городов.
+SELECT name_city, COUNT(buy_id) AS 'Количество' FROM 
+city
+inner join client ON city.city_id = client.city_id
+inner join buy ON client.client_id = buy.client_id
+group by  name_city 
+ORDER BY name_city ASC;
+
+-- 2.4.8
+Задание
+Вывести номера всех оплаченных заказов и даты, когда они были оплачены.
+SELECT buy_id, date_step_end
+FROM buy_step
+WHERE step_id = 1 AND date_step_end IS NOT NULL
+ORDER BY date_step_end;
+
+-- 2.4.9
+Задание
+Вывести информацию о каждом заказе: его номер, кто его сформировал (фамилия пользователя) и его стоимость (сумма произведений количества заказанных книг и их цены), в отсортированном по номеру заказа виде. Последний столбец назвать Стоимость.
+select buy_id,name_client,sum(book.price*buy_book.amount) as Стоимость
+from buy_book
+join buy using(buy_id)
+JOIN client using(client_id)
+join book using(book_id)
+Group BY buy_id,name_client
+  ORDER BY buy_id;
+  
+-- 2.4.10
+Задание
+Вывести номера заказов (buy_id) и названия этапов,  на которых они в данный момент находятся. Если заказ доставлен –  информацию о нем не выводить. Информацию отсортировать по возрастанию buy_id.
+SELECT buy_id, name_step
+FROM step INNER JOIN buy_step ON step.step_id = buy_step.step_id
+WHERE date_step_beg IS NOT NULL AND date_step_end IS NULL
+ORDER BY buy_id;
+
+-- 2.4.11
+Задание
+В таблице city для каждого города указано количество дней, за которые заказ может быть доставлен в этот город (рассматривается только этап Транспортировка). Для тех заказов, которые прошли этап транспортировки, вывести количество дней за которое заказ реально доставлен в город. А также, если заказ доставлен с опозданием, указать количество дней задержки, в противном случае вывести 0. В результат включить номер заказа (buy_id), а также вычисляемые столбцы Количество_дней и Опоздание. Информацию вывести в отсортированном по номеру заказа виде.
+SELECT
+  buy_step.buy_id,
+  datediff(date_step_end, date_step_beg) as 'Количество_дней',
+  IF(days_delivery - datediff(date_step_end, date_step_beg)>0, 0,abs(days_delivery - datediff(date_step_end,           date_step_beg)))  as 'Опоздание'
+FROM
+  buy_step
+  INNER JOIN step
+  ON buy_step.step_id = step.step_id
+  INNER JOIN buy
+  ON buy_step.buy_id = buy.buy_id
+  INNER JOIN client
+  ON buy.client_id = client.client_id
+  INNER JOIN city
+  ON client.city_id = city.city_id
+WHERE
+  name_step IN ('Транспортировка')
+  and
+  date_step_end IS NOT NULL;
+  
+-- 2.4.12
+Задание
+Выбрать всех клиентов, которые заказывали книги Достоевского, информацию вывести в отсортированном по алфавиту виде. В решении используйте фамилию автора, а не его id.
+select distinct name_client
+from client
+inner join buy using(client_id)
+inner join buy_book using(buy_id)
+inner join book using(book_id)
+inner join author using(author_id)
+where name_author like 'Достоевск%'
+order by name_client;
+
+-- 2.4.13
+Задание
+Вывести жанр (или жанры), в котором было заказано больше всего экземпляров книг, указать это количество. Последний столбец назвать Количество.
+SELECT name_genre, Количество
+FROM
+    (SELECT name_genre, sum(amount_1) as Количество
+        FROM (SELECT book_id, SUM(amount) AS amount_1
+        FROM buy_book
+        GROUP BY book_id) AS temp
+        INNER JOIN book ON temp.book_id = book.book_id
+        INNER JOIN genre ON book.genre_id = genre.genre_id
+        GROUP BY name_genre) as k
+        where k.Количество IN (SELECT MAX(t.Количество) as n
+                               FROM( SELECT name_genre, sum(amount_1) as Количество
+                               FROM (SELECT book_id, SUM(amount) AS amount_1
+                               FROM buy_book
+                               GROUP BY book_id) AS temp
+                               INNER JOIN book ON temp.book_id = book.book_id
+                               INNER JOIN genre ON book.genre_id = genre.genre_id
+                               GROUP BY name_genre) as t);
+                               
+-- 2.4.14
+Задание
+Сравнить ежемесячную выручку от продажи книг за текущий и предыдущий годы. Для этого вывести год, месяц, сумму выручки в отсортированном сначала по возрастанию месяцев, затем по возрастанию лет виде. Название столбцов: Год, Месяц, Сумма.
+SELECT YEAR(date_payment) AS Год, MONTHNAME(date_payment)AS Месяц, SUM(price*amount) AS Сумма
+FROM buy_archive
+GROUP BY Год, Месяц
+UNION
+SELECT YEAR(date_step_end) AS Год, MONTHNAME(date_step_end)AS Месяц, SUM(price*buy_book.amount) AS Сумма
+FROM buy_step
+        INNER JOIN buy_book USING(buy_id)
+    INNER JOIN book USING(book_id)
+        where date_step_end is not null and step_id = 1
+        GROUP BY Год, Месяц
+        ORDER BY Месяц ASC, Год ASC;
+        
+-- 2.4.15
+Задание
+Для каждой отдельной книги необходимо вывести информацию о количестве проданных экземпляров и их стоимости за 2020 и 2019 год . Вычисляемые столбцы назвать Количество и Сумма. Информацию отсортировать по убыванию стоимости.
+SELECT title, sum(Количество) as 'Количество', sum(Сумма) as 'Сумма'
+FROM
+(select title, sum(buy_archive.amount) as 'Количество', sum(buy_archive.price*buy_archive.amount) as 'Сумма' from buy_archive
+JOIN book USING(book_id)
+group by title
+union all
+select title, sum(buy_book.amount) as 'Количество', sum(price*buy_book.amount) as 'Сумма' from book
+JOIN buy_book using (book_id)
+JOIN buy_step using (buy_id)
+JOIN step using (step_id)
+where step.name_step = 'Оплата' and buy_step.date_step_end is not null
+group by title) as query_in
+group by title
+order by Сумма desc;
+
+-- 2.4.16
+Задание
+Придумайте один или несколько запросов на выборку для предметной области «Интернет-магазин книг» (в таблицы занесены данные, как на первом шаге урока). Проверьте, правильно ли они работают.
+SELECT title, sum(Количество) as 'Количество', sum(Сумма) as 'Сумма'
+FROM
+(select title, sum(buy_archive.amount) as 'Количество', sum(buy_archive.price*buy_archive.amount) as 'Сумма' from buy_archive
+JOIN book USING(book_id)
+group by title
+union all
+select title, sum(buy_book.amount) as 'Количество', sum(price*buy_book.amount) as 'Сумма' from book
+JOIN buy_book using (book_id)
+JOIN buy_step using (buy_id)
+JOIN step using (step_id)
+where step.name_step = 'Оплата' and buy_step.date_step_end is not null
+group by title) as query_in
+group by title
+order by Сумма desc;
